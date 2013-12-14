@@ -1,4 +1,4 @@
-You need to have numpy, pylibtiff, and docopt installed. Just do:
+You need to have numpy, pylibtiff, logbook, and docopt installed. Just do:
 
   pip install -r requirements.txt
 
