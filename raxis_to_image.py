@@ -2,13 +2,16 @@
 """R-Axis Area Detector image converter
 
 Usage:
-  raxis_to_image.py [--force] [--format <ext>] <oscfile>...
+  raxis_to_image.py [--force] [--format <ext>] [--compress] <oscfile>...
 
 Options:
   --format=<ext>    the extension of the filetype to convert the OSC file to
-                    (note that this program has only been tested converting
-                    to TIFF files) [default: tif]
+                    (must be either 'tif' or 'tiff' at present; support for
+                    other 16-bit filetypes may be added in future)
+                    [default: tif]
   --force           overwrite the destination file
+  --compresss       whether to use LZW compression for the TIFF file;
+                    [default: False]
 """
 
 from __future__ import division, print_function
@@ -17,7 +20,7 @@ from os.path import exists, splitext
 
 from docopt import docopt
 
-from skimage.io import imsave
+from libtiff import TIFFimage
 import numpy as np
 
 
@@ -32,6 +35,11 @@ def interpret(arr):
 
        See file-5.14/magic/Magdir/scientific
        available at ftp://ftp.astron.com/pub/file/file-5.14.tar.gz
+
+       Returns
+       -------
+       arr : ndarray
+         2-dimensional uint16 array of RAXIS detector data
     """
     # Check the version field to determine the endianess
     if arr[796:800].view('>u4') < 20:
@@ -64,25 +72,26 @@ def interpret(arr):
         raise ShapeError(err)
 
 
-def convert(filename, fileext='tif', force=False):
+def convert(filename, fileext='tif', force=False, compress=False):
     """Converts a RAXIS file to an image
 
-       Arguments:
-         filename
-         fileext - The extension of the filetype to convert to. This is
-           passed directly to skimage, so should be some format
-           it supports (e.g., 'jpeg', 'tif', 'pbm')
-         force - Whether to overwrite an existing image file of the same
-           name.
+       Arguments
+       ---------
+       filename : string
+       fileext : string
+         Either 'tif' or 'tiff'; since RAXIS data is 16-bit, it is of
+         dubious utility to use other formats. Support for other 16-bit
+         formats may be added in future
+       force : string
+         Whether to overwrite an existing image file of the same
+         name.
     """
     #### Initial sanity checks
     print("Converting {}".format(filename))
 
-    if fileext == 'osc' or fileext == 'info':
-        print("You specified a file extension of '{}'. ".format(fileext) +
-              "This would overwrite the original file, possibly before "
-              "skimage got really mad because it can't write OSC files."
-              "You probably want to specify other options.\nAborting!")
+    if fileext not in ['tif', 'tiff']:
+        print("RAXIS data is 16-bit; at the moment, we therefore only support "
+              "saving it to TIFF files.")
         return
 
     newfilename = ''.join([splitext(filename)[0], '.', fileext])
@@ -101,16 +110,20 @@ def convert(filename, fileext='tif', force=False):
         return
     data = interpret(raw)
 
-    imsave(newfilename, data)
+    tiff = TIFFimage(data, description='RAXIS file converted to TIFF by raxis_to_image 0.0.2')
+    tiff.write_file(newfilename, compression='none' if not compressed else 'lzw')
     print('Converted {} to {}'.format(filename, newfilename))
 
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version='raxis_to_image 0.0.1')
+    arguments = docopt(__doc__, version='raxis_to_image 0.0.2')
+    print(arguments)
     for oscfile in arguments['<oscfile>']:
         try:
-            convert(oscfile, fileext=arguments['--format'],
-                    force=arguments['--force'])
+            convert(oscfile,
+                    fileext=arguments['--format'],
+                    force=arguments['--force'],
+                    compress=arguments['--compress'])
         except ShapeError:
             # Eat exceptions raised as a result of trying to convert
             # damaged files (a diagnostic message is already output

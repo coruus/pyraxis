@@ -1,6 +1,6 @@
-You need to have numpy, scikits-image, and docopt installed. Just do:
+You need to have numpy, pylibtiff, and docopt installed. Just do:
 
-  pip install requirements.txt
+  pip install -r requirements.txt
 
 And then run:
 
