@@ -13,5 +13,6 @@ setup(
     description='Python module and script to read RAXIS detector images as ndarrays and convert them to TIFFs',
     license='GPLv3',
     keywords='RAXIS rigaku',
-    url='https://github.com/coruus/pyraxis'
+    url='https://github.com/coruus/pyraxis',
+    install_requires=open('requirements.txt').read()
 )
