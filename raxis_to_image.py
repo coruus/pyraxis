@@ -111,7 +111,7 @@ def convert(filename, fileext='tif', force=False, compress=False):
     data = interpret(raw)
 
     tiff = TIFFimage(data, description='RAXIS file converted to TIFF by raxis_to_image 0.0.2')
-    tiff.write_file(newfilename, compression='none' if not compressed else 'lzw')
+    tiff.write_file(newfilename, compression='none' if not compress else 'lzw')
     print('Converted {} to {}'.format(filename, newfilename))
 
 
