@@ -1,4 +1,4 @@
 docopt>=0.6.1
 logbook>=0.6
 numpy>=1.8
-pylibtiff>=0.3
+svn+https://pylibtiff.googlecode.com/svn/trunk
